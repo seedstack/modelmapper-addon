@@ -1,27 +1,26 @@
-/**
- * Copyright (c) 2013-2016, The SeedStack authors <http://seedstack.org>
+/*
+ * Copyright © 2013-2017, The SeedStack authors <http://seedstack.org>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 package org.seedstack.business.modelmapper;
 
+import javax.inject.Inject;
 import org.assertj.core.api.Assertions;
 import org.javatuples.Pair;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.seedstack.business.assembler.Assembler;
-import org.seedstack.business.util.Tuples;
 import org.seedstack.business.modelmapper.fixtures.Address;
 import org.seedstack.business.modelmapper.fixtures.Customer;
 import org.seedstack.business.modelmapper.fixtures.Name;
 import org.seedstack.business.modelmapper.fixtures.Order;
 import org.seedstack.business.modelmapper.fixtures.Recipe;
+import org.seedstack.business.util.Tuples;
 import org.seedstack.seed.it.SeedITRunner;
-
-import javax.inject.Inject;
-
 
 @RunWith(SeedITRunner.class)
 public class ModelMapperTupleAssemblerIT {
@@ -49,7 +48,6 @@ public class ModelMapperTupleAssemblerIT {
         Customer customer = new Customer(new Name("John", "Doe"));
         Order order = new Order(new Address("main street", "bevillecity"));
         Recipe recipe = new Recipe("Jane", "Doe", "", "");
-
 
         Pair<Order, Customer> tuple = Tuples.create(order, customer);
         defaultTupleAssembler.mergeAggregateIntoDto(tuple, recipe);

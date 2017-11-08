@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2013-2016, The SeedStack authors <http://seedstack.org>
+/*
+ * Copyright © 2013-2017, The SeedStack authors <http://seedstack.org>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,22 +8,26 @@
 
 package org.seedstack.business.modelmapper;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import org.javatuples.Tuple;
 import org.modelmapper.ModelMapper;
 import org.seedstack.business.assembler.BaseTupleAssembler;
 
 /**
- * This assembler automatically assembles aggregates in DTO and vice versa.
+ * This class can be extended to declare an assembler that is able to automatically map a tuple of aggregates to a DTO
+ * and back. It delegates the mapping to a {@link ModelMapper} instance.
  *
- * @param <T> the tuple
- * @param <D> the dto
+ * @param <T> the type of the tuple.
+ * @param <D> the type of the DTO.
  */
 public abstract class ModelMapperTupleAssembler<T extends Tuple, D> extends BaseTupleAssembler<T, D> {
-    private final AtomicBoolean configured = new AtomicBoolean(false);
+    private static final ConcurrentMap<Class<?>, ModelMapper> modelMappers = new ConcurrentHashMap<>();
     @Inject
-    private ModelMapper modelMapper;
+    private Provider<ModelMapper> modelMapperProvider;
+    private volatile ModelMapper cachedModelMapper;
 
     public ModelMapperTupleAssembler() {
         super();
@@ -35,8 +39,8 @@ public abstract class ModelMapperTupleAssembler<T extends Tuple, D> extends Base
 
     @Override
     public D createDtoFromAggregate(T sourceAggregate) {
-        configureIfNecessary();
         D sourceDto = null;
+        ModelMapper modelMapper = getModelMapper();
         for (Object o : sourceAggregate) {
             if (sourceDto == null) {
                 sourceDto = modelMapper.map(o, getDtoClass());
@@ -49,7 +53,7 @@ public abstract class ModelMapperTupleAssembler<T extends Tuple, D> extends Base
 
     @Override
     public void mergeAggregateIntoDto(T sourceAggregate, D targetDto) {
-        configureIfNecessary();
+        ModelMapper modelMapper = getModelMapper();
         for (Object o : sourceAggregate) {
             modelMapper.map(o, targetDto);
         }
@@ -57,17 +61,35 @@ public abstract class ModelMapperTupleAssembler<T extends Tuple, D> extends Base
 
     @Override
     public void mergeDtoIntoAggregate(D sourceDto, T targetAggregate) {
-        configureIfNecessary();
+        ModelMapper modelMapper = getModelMapper();
         for (Object o : targetAggregate) {
             modelMapper.map(sourceDto, o);
         }
     }
 
-    private void configureIfNecessary() {
-        if (!configured.getAndSet(true)) {
-            configure(modelMapper);
+    private ModelMapper getModelMapper() {
+        if (cachedModelMapper == null) {
+            synchronized (this) {
+                if (cachedModelMapper == null) {
+                    cachedModelMapper = modelMappers.computeIfAbsent(
+                            getClass(),
+                            key -> {
+                                ModelMapper modelMapper = modelMapperProvider.get();
+                                configure(modelMapper);
+                                return modelMapper;
+                            });
+                }
+            }
         }
+        return cachedModelMapper;
     }
 
+    /**
+     * This method is called once when the first mapping of the assembler occurs. It allows to configure the
+     * {@link ModelMapper} instance that will be used for mapping. This instance will then be reused for subsequent
+     * calls.
+     *
+     * @param modelMapper the {@link ModelMapper} instance to configure.
+     */
     protected abstract void configure(ModelMapper modelMapper);
 }

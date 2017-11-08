@@ -5,15 +5,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 package org.seedstack.business.modelmapper.internal;
 
 import com.google.inject.assistedinject.Assisted;
+import javax.inject.Inject;
 import org.javatuples.Tuple;
 import org.modelmapper.ModelMapper;
 import org.seedstack.business.modelmapper.ModelMapperTupleAssembler;
 import org.seedstack.business.spi.GenericImplementation;
-
-import javax.inject.Inject;
 
 /**
  * This class is a default  tuple assembler based on ModelMapper.
@@ -34,10 +34,7 @@ public class DefaultModelMapperTupleAssembler<T extends Tuple, D> extends ModelM
     }
 
     @Override
-    protected void configureAssembly(ModelMapper modelMapper) {
-    }
-
-    @Override
-    protected void configureMerge(ModelMapper modelMapper) {
+    protected void configure(ModelMapper modelMapper) {
+        // no further configuration needed
     }
 }

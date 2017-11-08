@@ -5,9 +5,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package org.seedstack.business.modelmapper;
+
+package org.seedstack.business.modelmapper.internal;
 
 import com.google.common.collect.Lists;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,26 +19,25 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.seedstack.business.domain.BaseAggregateRoot;
-import org.seedstack.business.modelmapper.internal.DefaultModelMapperAssembler;
-import org.seedstack.seed.Application;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.mockito.Mockito.mock;
-
+import org.seedstack.business.modelmapper.ModelMapperAssembler;
+import org.seedstack.business.modelmapper.ModelMapperConfig;
 
 public class ModelMapperAssemblerTest {
     private ModelMapperAssembler<Order, OrderDTO> modelMapperAssembler;
-    private DefaultModelMapperAssembler<Order, OrderDTO> defaultModelMappedAssembler;
+    private ModelMapperAssembler<Order, OrderDTO> defaultModelMappedAssembler;
 
     @Before
     public void before() {
-        modelMapperAssembler = new AutoAssembler();
-        Whitebox.setInternalState(modelMapperAssembler, "application", mock(Application.class));
-        defaultModelMappedAssembler = new DefaultModelMapperAssembler<>(new Class[]{Order.class, OrderDTO.class});
-        Whitebox.setInternalState(defaultModelMappedAssembler, "application", mock(Application.class));
+        modelMapperAssembler = configureAssembler(new AutoAssembler());
+        defaultModelMappedAssembler = configureAssembler(
+                new DefaultModelMapperAssembler<>(new Class[]{Order.class, OrderDTO.class}));
+    }
+
+    private <T extends ModelMapperAssembler<?, ?>> T configureAssembler(T assembler) {
+        ModelMapperProvider provider = new ModelMapperProvider();
+        Whitebox.setInternalState(provider, "modelMapperConfig", new ModelMapperConfig());
+        Whitebox.setInternalState(assembler, "modelMapper", provider.get());
+        return assembler;
     }
 
     @Test
@@ -44,7 +47,8 @@ public class ModelMapperAssemblerTest {
 
     @Test
     public void testAssembleDtoFromAggregate() {
-        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"), null, null);
+        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"), null,
+                null);
 
         OrderDTO orderDTO = modelMapperAssembler.createDtoFromAggregate(order);
 
@@ -65,7 +69,8 @@ public class ModelMapperAssemblerTest {
         Map<String, String> specs = new HashMap<>();
         specs.put("screen", "big but not too much");
         specs.put("price", "cheap");
-        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"), features, specs);
+        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"),
+                features, specs);
 
         OrderDTO orderDTO = modelMapperAssembler.createDtoFromAggregate(order);
 
@@ -82,7 +87,8 @@ public class ModelMapperAssemblerTest {
 
     @Test
     public void testUpdateDtoFromAggregate() {
-        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"), null, null);
+        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"), null,
+                null);
         OrderDTO orderDTO = new OrderDTO("Jane", "Doe", "", "");
 
         modelMapperAssembler.mergeAggregateIntoDto(order, orderDTO);
@@ -112,12 +118,9 @@ public class ModelMapperAssemblerTest {
     }
 
     static class AutoAssembler extends ModelMapperAssembler<Order, OrderDTO> {
-        @Override
-        protected void configureAssembly(ModelMapper modelMapper) {
-        }
 
         @Override
-        protected void configureMerge(ModelMapper modelMapper) {
+        protected void configure(ModelMapper modelMapper) {
             PropertyMap<OrderDTO, Order> orderMap = new PropertyMap<OrderDTO, Order>() {
                 protected void configure() {
                     map().getBillingAddress().setStreet(source.billingStreet);
@@ -129,19 +132,18 @@ public class ModelMapperAssemblerTest {
     }
 
     static abstract class AbstractAutoAssembler<T> extends ModelMapperAssembler<Order, T> {
+
     }
 
     static class InheritingAutoAssembler extends AbstractAutoAssembler<DummyDTO> {
-        @Override
-        protected void configureAssembly(ModelMapper modelMapper) {
-        }
 
         @Override
-        protected void configureMerge(ModelMapper modelMapper) {
+        protected void configure(ModelMapper modelMapper) {
         }
     }
 
     static class Order extends BaseAggregateRoot<String> {
+
         String id;
         Customer customer;
         List<String> features;
@@ -198,9 +200,11 @@ public class ModelMapperAssemblerTest {
         public void setIgnoredProp(String ignoredProp) {
             this.ignoredProp = ignoredProp;
         }
+
     }
 
     static class Customer {
+
         Name name;
 
         public Customer() {
@@ -218,9 +222,11 @@ public class ModelMapperAssemblerTest {
         public void setName(Name name) {
             this.name = name;
         }
+
     }
 
     static class Name {
+
         String firstName;
         String lastName;
 
@@ -248,9 +254,11 @@ public class ModelMapperAssemblerTest {
         public void setLastName(String lastName) {
             this.lastName = lastName;
         }
+
     }
 
     static class Address {
+
         String street;
         String city;
 
@@ -278,6 +286,7 @@ public class ModelMapperAssemblerTest {
         public void setCity(String city) {
             this.city = city;
         }
+
     }
 
     static class DummyDTO {
@@ -285,6 +294,7 @@ public class ModelMapperAssemblerTest {
     }
 
     static class OrderDTO {
+
         String customerFirstName;
         String customerLastName;
         String billingStreet;
@@ -349,5 +359,6 @@ public class ModelMapperAssemblerTest {
         public void setSpecs(Map<String, String> specs) {
             this.specs = specs;
         }
+
     }
 }

@@ -5,16 +5,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 package org.seedstack.business.modelmapper.fixtures;
 
+import java.util.UUID;
 import org.seedstack.business.domain.BaseAggregateRoot;
 import org.seedstack.business.domain.Identity;
-import org.seedstack.business.domain.UUIDGenerator;
-
-import java.util.UUID;
+import org.seedstack.business.domain.UuidGenerator;
 
 public class BasicAggregate extends BaseAggregateRoot<UUID> {
-    @Identity(generator = UUIDGenerator.class)
+    @Identity(generator = UuidGenerator.class)
     private UUID id;
 
     private String field1;

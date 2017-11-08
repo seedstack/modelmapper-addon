@@ -5,9 +5,18 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 package org.seedstack.business.modelmapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.google.common.collect.Lists;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import javax.inject.Inject;
+import javax.inject.Named;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,16 +32,6 @@ import org.seedstack.business.modelmapper.fixtures.MyService;
 import org.seedstack.seed.Logging;
 import org.seedstack.seed.it.SeedITRunner;
 import org.slf4j.Logger;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 
 @RunWith(SeedITRunner.class)
 public class ModelMapperAssemblerIT {
@@ -72,7 +71,8 @@ public class ModelMapperAssemblerIT {
 
     @Test
     public void testAssembleDtoFromAggregate() {
-        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"), null, null);
+        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"), null,
+                null);
 
         OrderDTO orderDTO = defaultOrderAssembler.createDtoFromAggregate(order);
 
@@ -88,7 +88,8 @@ public class ModelMapperAssemblerIT {
         Map<String, String> specs = new HashMap<>();
         specs.put("screen", "big but not too much");
         specs.put("price", "cheap");
-        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"), features, specs);
+        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"),
+                features, specs);
 
         OrderDTO orderDTO = defaultOrderAssembler.createDtoFromAggregate(order);
 
@@ -105,7 +106,8 @@ public class ModelMapperAssemblerIT {
 
     @Test
     public void testUpdateDtoFromAggregate() {
-        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"), null, null);
+        Order order = new Order(new Customer(new Name("John", "Doe")), new Address("main street", "bevillecity"), null,
+                null);
         OrderDTO orderDTO = new OrderDTO("Jane", "Doe", "", "");
 
         defaultOrderAssembler.mergeAggregateIntoDto(order, orderDTO);
@@ -146,7 +148,6 @@ public class ModelMapperAssemblerIT {
         assertThat(order.getIgnoredProp()).isEqualTo("this should not be deleted");
     }
 
-
     @Test
     public void mergeWithFullDefault() {
         UUID id = UUID.randomUUID();
@@ -169,21 +170,17 @@ public class ModelMapperAssemblerIT {
         Logger logger;
 
         @Override
-        protected void configureAssembly(org.modelmapper.ModelMapper modelMapper) {
+        protected void configure(org.modelmapper.ModelMapper modelMapper) {
             Assertions.assertThat(myService).isNotNull();
             assertThat(logger).isNotNull();
+
             modelMapper.addMappings(new PropertyMap<Customer, Name>() {
                 protected void configure() {
                     map().setFirstName(source.getName().getFirstName());
                     map().setLastName(source.getName().getLastName());
                 }
             });
-        }
 
-        @Override
-        protected void configureMerge(org.modelmapper.ModelMapper modelMapper) {
-            Assertions.assertThat(myService).isNotNull();
-            assertThat(logger).isNotNull();
             modelMapper.addMappings(new PropertyMap<Name, Customer>() {
                 protected void configure() {
                     map().getName().setFirstName(source.getFirstName());
@@ -408,25 +405,23 @@ public class ModelMapperAssemblerIT {
         private Logger logger;
 
         @Override
-        protected void configureAssembly(org.modelmapper.ModelMapper modelMapper) {
+        protected void configure(org.modelmapper.ModelMapper modelMapper) {
             Assertions.assertThat(myService).isNotNull();
             assertThat(logger).isNotNull();
+
             modelMapper.createTypeMap(Order.class, OrderDTO.class)
                     .addMappings(mapper -> {
                         mapper.map(src -> src.getBillingAddress().getStreet(), OrderDTO::setBillingStreet);
                         mapper.map(src -> src.getBillingAddress().getCity(), OrderDTO::setBillingCity);
                     });
-        }
 
-        @Override
-        protected void configureMerge(org.modelmapper.ModelMapper modelMapper) {
-            Assertions.assertThat(myService).isNotNull();
-            assertThat(logger).isNotNull();
             modelMapper.getConfiguration().setPropertyCondition(Conditions.isNotNull());
+
             modelMapper.createTypeMap(OrderDTO.class, Order.class)
                     .addMappings(mapper -> {
                         mapper.<String>map(OrderDTO::getBillingCity, (dest, v) -> dest.getBillingAddress().setCity(v));
-                        mapper.<String>map(OrderDTO::getBillingStreet, (dest, v) -> dest.getBillingAddress().setStreet(v));
+                        mapper.<String>map(OrderDTO::getBillingStreet,
+                                (dest, v) -> dest.getBillingAddress().setStreet(v));
                     });
         }
     }

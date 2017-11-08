@@ -5,16 +5,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 package org.seedstack.business.modelmapper;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.inject.Inject;
 import org.modelmapper.ModelMapper;
 import org.seedstack.business.assembler.BaseAssembler;
 import org.seedstack.business.domain.AggregateRoot;
-import org.seedstack.seed.Application;
-import org.seedstack.seed.ClassConfiguration;
-
-import javax.inject.Inject;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This assembler automatically assembles aggregates in DTO and vice versa.
@@ -23,12 +21,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @param <D> the dto
  */
 public abstract class ModelMapperAssembler<A extends AggregateRoot<?>, D> extends BaseAssembler<A, D> {
-    private final AtomicBoolean assembleConfigured = new AtomicBoolean(false);
-    private final AtomicBoolean mergeConfigured = new AtomicBoolean(false);
-    private final ModelMapper assembleModelMapper = new ModelMapper();
-    private final ModelMapper mergeModelMapper = new ModelMapper();
+    private final AtomicBoolean configured = new AtomicBoolean(false);
     @Inject
-    private Application application;
+    private ModelMapper modelMapper;
 
     public ModelMapperAssembler() {
         super();
@@ -40,36 +35,27 @@ public abstract class ModelMapperAssembler<A extends AggregateRoot<?>, D> extend
 
     @Override
     public D createDtoFromAggregate(A sourceAggregate) {
-        if (!assembleConfigured.getAndSet(true)) {
-            configureModelMapper(assembleModelMapper);
-            configureAssembly(assembleModelMapper);
-        }
-        return assembleModelMapper.map(sourceAggregate, getDtoClass());
+        configureIfNecessary();
+        return modelMapper.map(sourceAggregate, getDtoClass());
     }
 
     @Override
     public void mergeAggregateIntoDto(A sourceAggregate, D targetDto) {
-        if (!assembleConfigured.getAndSet(true)) {
-            configureModelMapper(assembleModelMapper);
-            configureAssembly(assembleModelMapper);
-        }
-        assembleModelMapper.map(sourceAggregate, targetDto);
+        configureIfNecessary();
+        modelMapper.map(sourceAggregate, targetDto);
     }
 
     @Override
     public void mergeDtoIntoAggregate(D sourceDto, A targetAggregate) {
-        if (!mergeConfigured.getAndSet(true)) {
-            configureModelMapper(mergeModelMapper);
-            configureMerge(mergeModelMapper);
+        configureIfNecessary();
+        modelMapper.map(sourceDto, targetAggregate);
+    }
+
+    private void configureIfNecessary() {
+        if (!configured.getAndSet(true)) {
+            configure(modelMapper);
         }
-        mergeModelMapper.map(sourceDto, targetAggregate);
     }
 
-    private void configureModelMapper(ModelMapper assembleModelMapper) {
-        //ClassConfiguration<D> dtoConfiguration = application.getConfiguration(getDtoClass());
-    }
-
-    protected abstract void configureAssembly(ModelMapper modelMapper);
-
-    protected abstract void configureMerge(ModelMapper modelMapper);
+    protected abstract void configure(ModelMapper modelMapper);
 }

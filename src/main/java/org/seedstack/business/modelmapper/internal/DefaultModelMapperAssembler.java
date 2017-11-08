@@ -8,12 +8,11 @@
 package org.seedstack.business.modelmapper.internal;
 
 import com.google.inject.assistedinject.Assisted;
+import javax.inject.Inject;
 import org.modelmapper.ModelMapper;
 import org.seedstack.business.domain.AggregateRoot;
 import org.seedstack.business.modelmapper.ModelMapperAssembler;
 import org.seedstack.business.spi.GenericImplementation;
-
-import javax.inject.Inject;
 
 /**
  * This class is a default assembler based on ModelMapper.
@@ -33,10 +32,7 @@ public class DefaultModelMapperAssembler<A extends AggregateRoot<?>, D> extends 
     }
 
     @Override
-    protected void configureAssembly(ModelMapper modelMapper) {
-    }
-
-    @Override
-    protected void configureMerge(ModelMapper modelMapper) {
+    protected void configure(ModelMapper modelMapper) {
+        // no further configuration needed
     }
 }

@@ -5,26 +5,36 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package org.seedstack.business.modelmapper;
+
+package org.seedstack.business.modelmapper.internal;
 
 import org.assertj.core.api.Assertions;
 import org.javatuples.Pair;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.modelmapper.ModelMapper;
 import org.seedstack.business.domain.BaseAggregateRoot;
+import org.seedstack.business.modelmapper.ModelMapperConfig;
+import org.seedstack.business.modelmapper.ModelMapperTupleAssembler;
 import org.seedstack.business.util.Tuples;
 
-
 public class ModelMapperTupleAssemblerTest {
-
     private ModelMapperTupleAssembler<Pair<Order, Customer>, OrderDTO> automaticAssembler;
-//    private DefaultAssembler<Order, OrderDTO> defaultAssembler;
+    private ModelMapperTupleAssembler<Pair<Order, Customer>, OrderDTO> defaultAssembler;
 
     @Before
     public void before() {
-        automaticAssembler = new AutoAssembler();
-//        defaultAssembler = new DefaultAssembler<Order, OrderDTO>(new Class[]{Order.class, OrderDTO.class});
+        automaticAssembler = configureAssembler(new AutoAssembler());
+        defaultAssembler = configureAssembler(new DefaultModelMapperTupleAssembler<>(
+                new Class[]{Pair.class, OrderDTO.class}));
+    }
+
+    private <T extends ModelMapperTupleAssembler<?, ?>> T configureAssembler(T assembler) {
+        ModelMapperProvider provider = new ModelMapperProvider();
+        Whitebox.setInternalState(provider, "modelMapperConfig", new ModelMapperConfig());
+        Whitebox.setInternalState(assembler, "modelMapper", provider.get());
+        return assembler;
     }
 
     @Test
@@ -40,10 +50,9 @@ public class ModelMapperTupleAssemblerTest {
         Assertions.assertThat(orderDTO.billingCity).isEqualTo("bevillecity");
         Assertions.assertThat(orderDTO.billingStreet).isEqualTo("main street");
 
-//        orderDTO = defaultAssembler.assembleDtoFromAggregate(order);
-//
-//        Assertions.assertThat(orderDTO.customerFirstName).isEqualTo("John");
-//        Assertions.assertThat(orderDTO.customerLastName).isEqualTo("Doe");
+        orderDTO = defaultAssembler.createDtoFromAggregate(new Pair<>(order, customer));
+        Assertions.assertThat(orderDTO.customerFirstName).isEqualTo("John");
+        Assertions.assertThat(orderDTO.customerLastName).isEqualTo("Doe");
     }
 
     @Test
@@ -51,7 +60,6 @@ public class ModelMapperTupleAssemblerTest {
         Customer customer = new Customer(new Name("John", "Doe"));
         Order order = new Order(new Address("main street", "bevillecity"));
         OrderDTO orderDTO = new OrderDTO("Jane", "Doe", "", "");
-
 
         Pair<Order, Customer> tuple = Tuples.create(order, customer);
         automaticAssembler.mergeAggregateIntoDto(tuple, orderDTO);
@@ -79,11 +87,7 @@ public class ModelMapperTupleAssemblerTest {
 
     static class AutoAssembler extends ModelMapperTupleAssembler<Pair<Order, Customer>, OrderDTO> {
         @Override
-        protected void configureAssembly(ModelMapper modelMapper) {
-        }
-
-        @Override
-        protected void configureMerge(ModelMapper modelMapper) {
+        protected void configure(ModelMapper modelMapper) {
         }
     }
 

@@ -25,6 +25,7 @@ public class ModelMapperConfig {
     private boolean ambiguityIgnored = false;
     private boolean fullTypeMatchingRequired = false;
     private boolean implicitMatching = true;
+    private boolean ignoreNulls = true;
     private SourceConfig source = new SourceConfig();
     private DestinationConfig destination = new DestinationConfig();
 
@@ -79,6 +80,15 @@ public class ModelMapperConfig {
 
     public ModelMapperConfig setImplicitMatching(boolean implicitMatching) {
         this.implicitMatching = implicitMatching;
+        return this;
+    }
+
+    public boolean isIgnoreNulls() {
+        return ignoreNulls;
+    }
+
+    public ModelMapperConfig setIgnoreNulls(boolean ignoreNulls) {
+        this.ignoreNulls = ignoreNulls;
         return this;
     }
 

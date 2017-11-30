@@ -20,7 +20,6 @@ import javax.inject.Named;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.modelmapper.Conditions;
 import org.modelmapper.PropertyMap;
 import org.seedstack.business.assembler.Assembler;
 import org.seedstack.business.assembler.DtoOf;
@@ -414,8 +413,6 @@ public class ModelMapperAssemblerIT {
                         mapper.map(src -> src.getBillingAddress().getStreet(), OrderDTO::setBillingStreet);
                         mapper.map(src -> src.getBillingAddress().getCity(), OrderDTO::setBillingCity);
                     });
-
-            modelMapper.getConfiguration().setPropertyCondition(Conditions.isNotNull());
 
             modelMapper.createTypeMap(OrderDTO.class, Order.class)
                     .addMappings(mapper -> {

@@ -9,6 +9,7 @@
 package org.seedstack.business.modelmapper.internal;
 
 import javax.inject.Provider;
+import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.seedstack.business.modelmapper.ModelMapperConfig;
 import org.seedstack.seed.Configuration;
@@ -38,6 +39,10 @@ class ModelMapperProvider implements Provider<ModelMapper> {
         configuration.setDestinationNameTokenizer(modelMapperConfig.destination().getNameTokenizer());
         configuration.setDestinationNameTransformer(modelMapperConfig.destination().getNameTransformer());
         configuration.setDestinationNamingConvention(modelMapperConfig.destination().getNamingConvention());
+
+        if (modelMapperConfig.isIgnoreNulls()) {
+            configuration.setPropertyCondition(Conditions.isNotNull());
+        }
 
         return modelMapper;
     }

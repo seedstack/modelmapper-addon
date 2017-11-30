@@ -9,6 +9,9 @@
 logging:
   level: WARN
 
+modelMapper:
+  fieldMatching: false
+
 classes:
   org:
     seedstack:

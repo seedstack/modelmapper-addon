@@ -11,10 +11,12 @@ package org.seedstack.business.modelmapper.fixtures;
 import java.util.UUID;
 import org.seedstack.business.domain.BaseAggregateRoot;
 import org.seedstack.business.domain.Identity;
-import org.seedstack.business.domain.UuidGenerator;
+import org.seedstack.business.util.UuidGenerator;
+import org.seedstack.business.util.random.Random;
 
 public class BasicAggregate extends BaseAggregateRoot<UUID> {
     @Identity(generator = UuidGenerator.class)
+    @Random
     private UUID id;
 
     private String field1;

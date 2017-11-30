@@ -20,6 +20,7 @@ import org.seedstack.coffig.Config;
 @Config("modelMapper")
 public class ModelMapperConfig {
     private Configuration.AccessLevel fieldAccessLevel = Configuration.AccessLevel.PRIVATE;
+    private Configuration.AccessLevel methodAccessLevel = Configuration.AccessLevel.PUBLIC;
     private boolean fieldMatching = true;
     private boolean ambiguityIgnored = false;
     private boolean fullTypeMatchingRequired = false;
@@ -33,6 +34,15 @@ public class ModelMapperConfig {
 
     public ModelMapperConfig setFieldAccessLevel(Configuration.AccessLevel fieldAccessLevel) {
         this.fieldAccessLevel = fieldAccessLevel;
+        return this;
+    }
+
+    public Configuration.AccessLevel getMethodAccessLevel() {
+        return methodAccessLevel;
+    }
+
+    public ModelMapperConfig setMethodAccessLevel(Configuration.AccessLevel methodAccessLevel) {
+        this.methodAccessLevel = methodAccessLevel;
         return this;
     }
 

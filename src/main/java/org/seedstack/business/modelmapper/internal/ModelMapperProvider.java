@@ -22,8 +22,11 @@ class ModelMapperProvider implements Provider<ModelMapper> {
         ModelMapper modelMapper = new ModelMapper();
         org.modelmapper.config.Configuration configuration = modelMapper.getConfiguration();
 
-        configuration.setMethodAccessLevel(modelMapperConfig.getFieldAccessLevel());
         configuration.setFieldMatchingEnabled(modelMapperConfig.isFieldMatching());
+        configuration.setFieldAccessLevel(modelMapperConfig.getFieldAccessLevel());
+
+        configuration.setMethodAccessLevel(modelMapperConfig.getMethodAccessLevel());
+
         configuration.setAmbiguityIgnored(modelMapperConfig.isAmbiguityIgnored());
         configuration.setFullTypeMatchingRequired(modelMapperConfig.isFullTypeMatchingRequired());
         configuration.setImplicitMappingEnabled(modelMapperConfig.isImplicitMatching());
